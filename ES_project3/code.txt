@@ -1,0 +1,118 @@
+
+#include "mbed.h" 
+#include <iostream>      
+#include <string>  
+#include <stdio.h>
+#include <stdlib.h>      
+using namespace std;
+
+PwmOut audioOut(PTB0);
+PwmOut Led(LED1);
+InterruptIn B_1(PTD0);
+InterruptIn B_2(PTA5);
+Serial pc(USBTX, USBRX);
+AnalogIn temp(PTE30);
+
+void int_1(){
+    printf("User interrupt 1 has been received \n");
+    wait(5);
+    printf("intrupt1 is finished \n");
+}
+void int_2(){
+    printf("User interrupt 2 has been received \n");
+    wait(5);
+    printf("intrupt2 is finished \n");
+}
+void playSong() {
+    float duration[20]= {0.4,0.4,0.4,0.4,0.8,0.4,0.4,0.4,0.4,0.4,0.4,0.8,0.4,0.4,0.4,0.2,0.2,0.4,0.4,0.8};
+    float note[20]= {440,440,440,466.16,440,440,466.16,440,440,440,466.16,440,440,466.16,440,392,440,466.16,440,392};
+    float vol = 0.25;
+    int len = 20;
+    PwmOut audioOut(PTB0);
+    for(int i=0;i<len;i++){
+            audioOut.period(1.0/note[i]);
+            audioOut = vol;
+            wait(duration[i]);
+            audioOut = 0;
+        }
+}
+void getTemp() {
+    float temperature=0,sum=0,avg=0;
+    int i;        
+    for(i=0;i<30000;i++){
+        sum += temp.read();
+        wait(0.005);
+        }
+    avg = sum/(30000);
+    temperature=(avg*3.685503686*30000);
+    printf ("\n\n - temp: %f" ,temperature);
+}
+void checkInput(char input[]){
+            char str1[2] = {'o' , 'n'};
+            char str2[3] = {'o' , 'f' , 'f'};
+            char str3[4] = {'t' , 'e' , 'm' , 'p'};
+            char str4[4] = {'p', 'l' , 'a' , 'y'};
+            bool isSame; 
+            
+            isSame = true;
+            for(int i=0;i<3;i++){
+                if(input[i]!=str2[i]){
+                    isSame=false;
+                    break;
+                }
+             }
+                if(isSame){
+                    Led = 1 ;
+                    printf ("\n\n - off");
+            }
+            
+            isSame = true;
+            for(int i=0;i<2;i++){
+                if(input[i]!=str1[i]){
+                    isSame=false;
+                    break;
+                }
+             }
+             if(isSame){
+                 Led = 0;
+                printf ("\n\n - on");
+            }
+            
+            isSame = true;
+            for(int i=0;i<4;i++){
+                if(input[i]!=str3[i]){
+                    isSame=false;
+                    break;
+                }
+             }
+             if(isSame){
+                getTemp();
+                printf ("\n\n - temp");
+            }
+            
+            isSame = true;    
+            for(int i=0;i<4;i++){
+                if(input[i]!=str4[i]){
+                    isSame=false;
+                    break;
+                }
+             }
+             if(isSame){
+                 playSong(); 
+                 printf ("\n\n - play");
+            }    
+}
+int main() {
+    while(1){   
+            B_1.mode(PullUp) ;
+            B_2.mode(PullUp) ;
+            B_1.rise(&int_1);
+            B_2.rise(&int_2);
+            NVIC_SetPriority(PORTA_IRQn, 0);
+            NVIC_SetPriority(PORTD_IRQn, 1);
+            printf ("\n\n -$-> Enter your command: ");
+            char input[20]="";
+            scanf("%s", input);
+            checkInput(input);
+    }      
+}

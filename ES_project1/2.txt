@@ -1,0 +1,29 @@
+#include "mbed.h"
+
+DigitalInOut SW(PTD3);
+PwmOut LED(PTD2);
+
+int main() {
+    float counter=1.0;
+    float voltage=0.0;
+    LED.period(0.02);
+    LED = 0.0;
+    while(1) {
+        if(SW ==0){
+            wait(0.1);
+            if(counter<5){
+                voltage =counter*0.2;
+                LED = voltage;
+            }else if(counter>5){
+                float dist = counter - 5 ;
+                voltage= 1-(dist*0.2) ;
+                LED = voltage;
+            }
+            if(counter==10){
+                counter=0;
+             }
+            counter++;
+            SW=1;
+        }
+    }
+}

@@ -1,0 +1,31 @@
+#include "mbed.h"
+DigitalOut led(PTD2);
+DigitalInOut switch1(PTD3);
+int main() {
+    led = 0.0;
+    float i=0.0; 
+    while(true) {
+        if(switch1 ==0){
+            wait(0.1);
+            i++;
+            switch1=1;
+        }
+        
+    if(i>0 && i<=5){      
+            led = 1;
+            wait(i*0.005);
+            led=0 ;
+            wait((5-i)*0.005);
+        }else if(i>5){     
+            led = 1;
+            wait((10-i)*0.005);
+            led=0 ;
+            wait((i-5)*0.005);
+            }
+            if(i==10){
+                i=0;
+                led=0;
+             }
+    }
+    
+}
